@@ -1,41 +1,62 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>A-Jet Havayolları | Bağımsız Havacılık ve Simülasyon Arşivi</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yükleniyor...</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; color: #333; }
+    h1 { color: #111; margin-bottom: 20px; }
+    .meta { font-size: 0.9em; color: #666; margin-bottom: 30px; }
+    .content { font-size: 1.1em; white-space: pre-line; }
+    .loading { text-align: center; padding: 50px; color: #888; }
+  </style>
 </head>
-<body style="text-align: center; margin: 0; padding: 8% 5%; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc; color: #1e293b;">
+<body>
+  <div id="app">
+    <div class="loading">İçerik yükleniyor...</div>
+  </div>
 
-    <div style="max-width: 650px; margin: 0 auto; background: #ffffff; padding: 40px 30px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border-top: 5px solid #0f172a;">
-        
-        <!-- Ana Kararlılık Beyanı -->
-        <h1 style="font-size: 22px; margin-bottom: 5px; color: #0f172a; font-weight: 700;">BU ALAN ADI SATILIK DEĞİLDİR</h1>
-        <p style="font-size: 15px; color: #64748b; margin-top: 0; margin-bottom: 30px; font-style: italic;">THIS DOMAIN NAME IS ABSOLUTELY NOT FOR SALE.</p>
-        
-        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin-bottom: 25px;">
+  <script>
+    const SUPABASE_URL = 'https://eawwgvklwuhqsbwwcqdc.supabase.co'; // Proje URL'in
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhd3dndmtsd3VocXNid3djcWRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk3NTU5NjcsImV4cCI6MjEwNTMzMTk2N30.sySmKTHrMxdhB7locmhUQqwjoWK2Sipqlxxqo7Slc7I'; // Anon/Public Key
 
-        <!-- Havayolu İhlal Karşıtı Hukuki Kalkan Metni -->
-        <div style="text-align: left; font-size: 14px; line-height: 1.6; color: #334155;">
-            
-            <p style="margin-bottom: 20px;">
-                <strong>📌 Gelecek Proje Beyanı (Future Non-Commercial Aviation Project):</strong><br>
-                Bu alan adı (ajethavayollari.com.tr); sivil havacılık tarihi, dünya genelindeki askeri ve sivil jet uçaklar, uçuş simülatörleri (Flight Simulator) teknik rehberleri ve amatör havacılık incelemelerini barındıracak, tamamen kâr amacı gütmeyen bağımsız bir <strong>"A-Sınıfı Jet Havayolları İnceleme ve Simülasyon Blogu"</strong> projesi için rezerve edilmiştir. Teknik altyapı çalışmaları sürmektedir.
-            </p>
-            
-            <p style="margin-bottom: 20px;">
-                <strong>⚖️ Kesin Bağlantısızlık Beyanı (Commercial Airline Disclaimer):</strong><br>
-                Bu web sitesi ve alan adının; Türkiye'de veya dünyada faaliyet gösteren, benzer veya yakın isimlere sahip hiçbir resmi ticari havayolu şirketi, sivil hava taşımacılığı kuruluşu veya tescilli yolcu taşımacılığı markası ile <strong>hiçbir organik bağı, ortaklığı, acenteliği ya da ticari ilişkisi bulunmamaktadır.</strong> Sitede bilet satışı, rezervasyon veya havayolu hizmeti verilmez.
-            </p>
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-            <p style="margin-bottom: 5px;">
-                <strong>💡 Kötü Niyet Bulunmadığına Dair Beyan (Good Faith Declaration):</strong><br>
-                Bu alan adı, yolcu taşımacılığı yapan ticari firmaların marka itibarından faydalanma, haksız rekabet yaratma veya tüketicileri resmi havayolu sitesiymiş gibi yanıltma amacı taşımaksızın, amatör havacılık hobisi çerçevesinde tescil edilmiştir. Alan adı üzerinden doğrudan veya dolaylı hiçbir ticari teklif ve satış talebi kesinlikle kabul edilmeyecektir.
-            </p>
+    async function loadArticle() {
+      const today = new Date().toISOString().split('T')[0];
+      let domain = window.location.hostname.replace('www.', '');
 
-        </div>
+      // Yerel testlerde veya GitHub Pages alt alan adlarında varsayılan test domaini
+      if (domain === 'localhost' || domain.includes('github.io')) {
+        domain = 'riyadhair.com.tr'; 
+      }
 
-    </div>
+      const { data, error } = await supabase
+        .from('articles')
+        .select('title, content, created_at')
+        .eq('domain', domain)
+        .order('date', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
+      const appEl = document.getElementById('app');
+
+      if (error || !data) {
+        appEl.innerHTML = '<h1>İçerik Bulunamadı</h1><p>Bu alan adı için henüz yayınlanmış bir yazı bulunmuyor.</p>';
+        return;
+      }
+
+      document.title = data.title;
+      appEl.innerHTML = `
+        <h1>${data.title}</h1>
+        <div class="meta">Yayınlanma Tarihi: ${new Date(data.created_at).toLocaleDateString('tr-TR')}</div>
+        <div class="content">${data.content}</div>
+      `;
+    }
+
+    loadArticle();
+  </script>
 </body>
 </html>
